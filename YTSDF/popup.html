@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { width: 300px; padding: 15px; }
+        input { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h3>Search Date Filter</h3>
+    <label>
+        <input type="checkbox" id="enabled"> Enable filter
+    </label>
+    <br>
+    <label>
+        <input type="checkbox" id="exactSearch"> Enable exact search
+    </label>
+    <br>
+    <label>
+        Filter results before:
+        <input type="date" id="cutoffDate">
+    </label>
+    <br>
+    <div class="sort-options">
+        <strong>Default</strong>
+        <label>
+            <input type="radio" name="sortOrder" value="relevance" checked> Relevance
+        </label>
+        <label>
+            <input type="radio" name="sortOrder" value="date"> Upload date
+        </label>
+        <label>
+            <input type="radio" name="sortOrder" value="viewCount"> View count
+        </label>
+    </div>
+    <button id="save">Save</button>
+    <script src="popup.js"></script>
+</body>
+</html>
