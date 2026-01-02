@@ -1,0 +1,30 @@
+{
+    "manifest_version": 3,
+    "name": "YouTube Search Date Filter",
+    "version": "1.0.0",
+    "description": "Filter search results by date",
+    "permissions": ["storage"],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/icon.png",
+            "48": "icons/icon.png",
+            "128": "icons/icon.png"
+        }  
+    },
+    "icons": {
+        "16": "icons/icon.png",
+        "48": "icons/icon.png",
+        "128": "icons/icon.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.google.com/search*",
+                "*://*.youtube.com/*"
+            ],
+            "js": ["content.js"],
+            "run_at": "document_end"
+        }
+    ]
+}
