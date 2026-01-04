@@ -1,104 +1,236 @@
 let lastUrl = location.href;
 
-function modifySearch() {
-  chrome.storage.sync.get(['enabled', 'exactSearch', 'cutoffDate', 'sortOrder'], (data) => {
-    if (!data.enabled || !data.cutoffDate) return;
-    
-    const url = new URL(window.location.href);
-    
-    let queryParam = null;
-    let query = null;
-    
-    if (url.hostname.includes('google.com')) {
-      queryParam = 'q';
-      query = url.searchParams.get('q');
-    } else if (url.hostname.includes('youtube.com')) {
-      queryParam = 'search_query';
-      query = url.searchParams.get('search_query');
-    }
-    
-    if (query && queryParam && !query.includes('before:')) {
-      let newQuery = query;
-      
-      // Add exact search quotes if enabled
-      if (data.exactSearch && !newQuery.startsWith('"')) {
-        newQuery = `"${newQuery}"`;
+// Inject floating menu UI
+function injectUI() {
+  if (document.getElementById('ytsdf-toggle')) return; // Already injected
+
+  // Create toggle button
+  const toggleBtn = document.createElement('button');
+  toggleBtn.id = 'ytsdf-toggle';
+  toggleBtn.innerHTML = '⚙️';
+  toggleBtn.title = 'Search Date Filter Settings';
+  
+  // Create overlay menu
+  const overlay = document.createElement('div');
+  overlay.id = 'ytsdf-overlay';
+  overlay.innerHTML = `
+    <button id="ytsdf-close">×</button>
+    <h3>Search Date Filter</h3>
+    <label>
+      <input type="checkbox" id="ytsdf-enabled"> Enable filter
+    </label>
+    <label>
+      <input type="checkbox" id="ytsdf-exactSearch"> Enable exact search
+    </label>
+    <label>
+      Filter results before:
+      <input type="date" id="ytsdf-cutoffDate">
+    </label>
+    <div class="sort-options">
+      <strong>Default sort (YouTube only):</strong>
+      <label>
+        <input type="radio" name="ytsdf-sortOrder" value="relevance" checked> Relevance
+        <small>(default)</small>
+      </label>
+      <label>
+        <input type="radio" name="ytsdf-sortOrder" value="date"> Upload date
+      </label>
+      <label>
+        <input type="radio" name="ytsdf-sortOrder" value="viewCount"> View count
+      </label>
+    </div>
+    <button id="ytsdf-save">Save Settings</button>
+  `;
+  
+  document.body.appendChild(toggleBtn);
+  document.body.appendChild(overlay);
+  
+  // Load saved settings with error handling
+  try {
+    chrome.storage.sync.get(['enabled', 'exactSearch', 'cutoffDate', 'sortOrder'], (data) => {
+      if (chrome.runtime.lastError) {
+        console.error('YTSDF: Error loading settings:', chrome.runtime.lastError);
+        return;
       }
       
-      // Add date filter
-      newQuery = `before:${data.cutoffDate} ${newQuery}`;
+      document.getElementById('ytsdf-enabled').checked = data.enabled || false;
+      document.getElementById('ytsdf-exactSearch').checked = data.exactSearch || false;
+      document.getElementById('ytsdf-cutoffDate').value = data.cutoffDate || '';
       
-      url.searchParams.set(queryParam, newQuery);
-      
-      // Add YouTube sort parameter if applicable
-      if (url.hostname.includes('youtube.com') && data.sortOrder && data.sortOrder !== 'relevance') {
-        if (data.sortOrder === 'date') {
-          url.searchParams.set('sp', 'CAI%3D');
-        } else if (data.sortOrder === 'viewCount') {
-          url.searchParams.set('sp', 'CAM%3D');
-        }
-      }
-      
-      window.location.replace(url.toString());
+      const sortOrder = data.sortOrder || 'relevance';
+      const radio = document.querySelector(`input[name="ytsdf-sortOrder"][value="${sortOrder}"]`);
+      if (radio) radio.checked = true;
+    });
+  } catch (error) {
+    console.error('YTSDF: Error accessing chrome.storage:', error);
+  }
+  
+  // Toggle overlay
+  toggleBtn.addEventListener('click', () => {
+    overlay.classList.toggle('visible');
+  });
+  
+  // Close button
+  document.getElementById('ytsdf-close').addEventListener('click', () => {
+    overlay.classList.remove('visible');
+  });
+  
+  // Close when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!overlay.contains(e.target) && e.target !== toggleBtn) {
+      overlay.classList.remove('visible');
     }
   });
-}
-
-// Intercept YouTube search form submission
-function interceptYouTubeSearch() {
-  chrome.storage.sync.get(['enabled', 'exactSearch', 'cutoffDate', 'sortOrder'], (data) => {
-    if (!data.enabled || !data.cutoffDate) return;
+  
+  // Save button
+  document.getElementById('ytsdf-save').addEventListener('click', () => {
+    const enabled = document.getElementById('ytsdf-enabled').checked;
+    const exactSearch = document.getElementById('ytsdf-exactSearch').checked;
+    const date = document.getElementById('ytsdf-cutoffDate').value;
+    const sortOrder = document.querySelector('input[name="ytsdf-sortOrder"]:checked').value;
     
-    const checkSearchBox = setInterval(() => {
-      const searchBox = document.querySelector('input#search');
-      if (searchBox) {
-        clearInterval(checkSearchBox);
+    try {
+      chrome.storage.sync.set({ 
+        enabled, 
+        exactSearch,
+        cutoffDate: date,
+        sortOrder
+      }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('YTSDF: Error saving settings:', chrome.runtime.lastError);
+          return;
+        }
         
-        const form = searchBox.closest('form');
-        if (form) {
-          form.addEventListener('submit', (e) => {
-            let currentQuery = searchBox.value;
-            if (currentQuery && !currentQuery.includes('before:')) {
-              e.preventDefault();
-              
-              // Add exact search quotes if enabled
-              if (data.exactSearch && !currentQuery.startsWith('"')) {
-                currentQuery = `"${currentQuery}"`;
-              }
-              
-              searchBox.value = `before:${data.cutoffDate} ${currentQuery}`;
-              
-              // Add sort parameter to form action if needed
-              if (data.sortOrder && data.sortOrder !== 'relevance') {
-                const formAction = new URL(form.action);
-                if (data.sortOrder === 'date') {
-                  formAction.searchParams.set('sp', 'CAI%3D');
-                } else if (data.sortOrder === 'viewCount') {
-                  formAction.searchParams.set('sp', 'CAM%3D');
-                }
-                form.action = formAction.toString();
-              }
-              
-              form.submit();
-            }
-          });
-        }
-      }
-    }, 100);
-    
-    setTimeout(() => clearInterval(checkSearchBox), 5000);
+        overlay.classList.remove('visible');
+        const originalText = document.getElementById('ytsdf-save').textContent;
+        document.getElementById('ytsdf-save').textContent = 'Saved! ✓';
+        setTimeout(() => {
+          document.getElementById('ytsdf-save').textContent = originalText;
+        }, 1500);
+      });
+    } catch (error) {
+      console.error('YTSDF: Error accessing chrome.storage:', error);
+    }
   });
 }
 
-// Run on initial load
+function modifySearch() {
+  try {
+    chrome.storage.sync.get(['enabled', 'exactSearch', 'cutoffDate', 'sortOrder'], (data) => {
+      if (chrome.runtime.lastError) {
+        console.error('YTSDF: Error in modifySearch:', chrome.runtime.lastError);
+        return;
+      }
+      
+      if (!data.enabled || !data.cutoffDate) return;
+      
+      const url = new URL(window.location.href);
+      
+      let queryParam = null;
+      let query = null;
+      
+      if (url.hostname.includes('google.com')) {
+        queryParam = 'q';
+        query = url.searchParams.get('q');
+      } else if (url.hostname.includes('youtube.com')) {
+        queryParam = 'search_query';
+        query = url.searchParams.get('search_query');
+      }
+      
+      if (query && queryParam && !query.includes('before:')) {
+        let newQuery = query;
+        
+        if (data.exactSearch && !newQuery.startsWith('"')) {
+          newQuery = `"${newQuery}"`;
+        }
+        
+        newQuery = `before:${data.cutoffDate} ${newQuery}`;
+        
+        url.searchParams.set(queryParam, newQuery);
+        
+        if (url.hostname.includes('youtube.com') && data.sortOrder && data.sortOrder !== 'relevance') {
+          if (data.sortOrder === 'date') {
+            url.searchParams.set('sp', 'CAI%3D');
+          } else if (data.sortOrder === 'viewCount') {
+            url.searchParams.set('sp', 'CAM%3D');
+          }
+        }
+        
+        window.location.replace(url.toString());
+      }
+    });
+  } catch (error) {
+    console.error('YTSDF: Error in modifySearch:', error);
+  }
+}
+
+function interceptYouTubeSearch() {
+  try {
+    chrome.storage.sync.get(['enabled', 'exactSearch', 'cutoffDate', 'sortOrder'], (data) => {
+      if (chrome.runtime.lastError) {
+        console.error('YTSDF: Error in interceptYouTubeSearch:', chrome.runtime.lastError);
+        return;
+      }
+      
+      if (!data.enabled || !data.cutoffDate) return;
+      
+      const checkSearchBox = setInterval(() => {
+        const searchBox = document.querySelector('input#search');
+        if (searchBox) {
+          clearInterval(checkSearchBox);
+          
+          const form = searchBox.closest('form');
+          if (form) {
+            form.addEventListener('submit', (e) => {
+              let currentQuery = searchBox.value;
+              if (currentQuery && !currentQuery.includes('before:')) {
+                e.preventDefault();
+                
+                if (data.exactSearch && !currentQuery.startsWith('"')) {
+                  currentQuery = `"${currentQuery}"`;
+                }
+                
+                searchBox.value = `before:${data.cutoffDate} ${currentQuery}`;
+                
+                if (data.sortOrder && data.sortOrder !== 'relevance') {
+                  const formAction = new URL(form.action);
+                  if (data.sortOrder === 'date') {
+                    formAction.searchParams.set('sp', 'CAI%3D');
+                  } else if (data.sortOrder === 'viewCount') {
+                    formAction.searchParams.set('sp', 'CAM%3D');
+                  }
+                  form.action = formAction.toString();
+                }
+                
+                form.submit();
+              }
+            });
+          }
+        }
+      }, 100);
+      
+      setTimeout(() => clearInterval(checkSearchBox), 5000);
+    });
+  } catch (error) {
+    console.error('YTSDF: Error in interceptYouTubeSearch:', error);
+  }
+}
+
+// Initialize with delays to ensure APIs are ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(injectUI, 500);
+  });
+} else {
+  setTimeout(injectUI, 500);
+}
+
 modifySearch();
 
-// For YouTube homepage, intercept search form
 if (location.hostname.includes('youtube.com')) {
   interceptYouTubeSearch();
 }
 
-// Watch for URL changes (for SPA navigation)
 new MutationObserver(() => {
   const currentUrl = location.href;
   if (currentUrl !== lastUrl) {
