@@ -94,7 +94,7 @@
 #ytsdf-save {
     width: 100%;
     padding: 10px;
-    background: #065fd4;
+    background: #dc3545;
     color: white;
     border: none;
     border-radius: 8px;
@@ -106,7 +106,7 @@
 }
 
 #ytsdf-save:hover {
-    background: #0456b8;
+    background: #c82333;
 }
 
 #ytsdf-close {
