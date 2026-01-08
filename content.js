@@ -7,7 +7,7 @@ function injectUI() {
   // Create toggle button
   const toggleBtn = document.createElement('button');
   toggleBtn.id = 'ytsdf-toggle';
-  toggleBtn.innerHTML = '⚙️';
+  toggleBtn.innerHTML = '☰';
   toggleBtn.title = 'Search Date Filter Settings';
   
   // Create overlay menu
