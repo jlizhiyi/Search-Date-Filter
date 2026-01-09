@@ -1,4 +1,4 @@
-# YouTube Search Date Filter
+# Search Date Filter
 A Chrome extension that automatically filters Google and YouTube search results by date, allowing you to find content from specific time periods. Works by injecting JavaScript into Google and YouTube pages, detecting query and modifying URL. Supports YouTube's single-page navigation.
 
 ## Features
