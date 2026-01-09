@@ -45,6 +45,10 @@
     background: radial-gradient(circle, #bbbbbb 0%, #666666 100%);
 }
 
+#ytsdf-toggle img {
+    pointer-events: none;
+}
+
 #ytsdf-overlay h3 {
     margin: 0 0 15px 0;
     font-size: 18px;
