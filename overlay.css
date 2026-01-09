@@ -74,6 +74,11 @@
     border-radius: 6px;
     font-size: 14px;
     margin-top: 5px;
+    box-sizing: border-box;
+}
+
+#ytsdf-overlay .date-input {
+    margin: 15px 0;
 }
 
 #ytsdf-overlay .sort-options {
@@ -98,19 +103,18 @@
 #ytsdf-save {
     width: 100%;
     padding: 10px;
-    background: #dc3545;
+    background: linear-gradient(to bottom, #ff4d5e 0%, #c82333 100%);
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    margin-top: 15px;
+    font-size: 15px;
+    font-weight: 700;
     transition: background 0.2s ease;
 }
 
 #ytsdf-save:hover {
-    background: #c82333;
+    background: linear-gradient(to bottom, #e04050 0%, #a81d2a 100%);
 }
 
 #ytsdf-close {

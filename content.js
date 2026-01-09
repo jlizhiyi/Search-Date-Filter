@@ -22,10 +22,12 @@ function injectUI() {
     <label>
       <input type="checkbox" id="ytsdf-exactSearch"> Enable exact search
     </label>
-    <label>
-      Filter results before:
-      <input type="date" id="ytsdf-cutoffDate">
-    </label>
+    <div class="date-input">
+      <label>
+        Filter results before:
+        <input type="date" id="ytsdf-cutoffDate">
+      </label>
+    </div>
     <div class="sort-options">
       <strong>Default sort (YouTube only):</strong>
       <label>
@@ -39,7 +41,7 @@ function injectUI() {
         <input type="radio" name="ytsdf-sortOrder" value="viewCount"> View count
       </label>
     </div>
-    <button id="ytsdf-save">Save Settings</button>
+    <button id="ytsdf-save">Save</button>
   `;
   
   document.body.appendChild(toggleBtn);
