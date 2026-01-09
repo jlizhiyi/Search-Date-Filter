@@ -16,6 +16,12 @@
             "128": "icons/icon.png"
         }
     },
+    "web_accessible_resources": [
+        {
+            "resources": ["icons/icon.png"],
+            "matches": ["*://*.google.com/*", "*://*.youtube.com/*"]
+        }
+    ],
     "content_scripts": [
         {
             "matches": [
