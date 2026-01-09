@@ -7,7 +7,7 @@ function injectUI() {
   // Create toggle button
   const toggleBtn = document.createElement('button');
   toggleBtn.id = 'ytsdf-toggle';
-  toggleBtn.innerHTML = `<img src="${chrome.runtime.getURL('logo.png')}" style="width: 30px; height: 30px;">`;
+  toggleBtn.innerHTML = `<img src="${chrome.runtime.getURL('icons/icon.png')}" style="width: 30px; height: 30px;">`;
   toggleBtn.title = 'Search Date Filter Settings';
   
   // Create overlay menu
