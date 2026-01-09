@@ -27,7 +27,7 @@
     right: 20px;
     width: 50px;
     height: 50px;
-    background: #dc3545;
+    background: radial-gradient(circle, #cccccc 0%, #888888 100%);
     border-radius: 50%;
     border: none;
     cursor: pointer;
@@ -42,7 +42,7 @@
 }
 
 #ytsdf-toggle:hover {
-    background: #c82333;
+    background: radial-gradient(circle, #bbbbbb 0%, #666666 100%);
 }
 
 #ytsdf-overlay h3 {
