@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "YouTube Search Date Filter",
+    "name": "Search Date Filter",
     "version": "1.0.0",
     "description": "Filter search results by date",
     "permissions": ["storage"],

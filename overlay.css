@@ -117,6 +117,24 @@
     background: linear-gradient(to bottom, #e04050 0%, #a81d2a 100%);
 }
 
+#ytsdf-restore {
+    width: 100%;
+    padding: 10px;
+    background: #888888;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 10px;
+    transition: background 0.2s ease;
+}
+
+#ytsdf-restore:hover {
+    background: #666666;
+}
+
 #ytsdf-close {
     position: absolute;
     top: 15px;

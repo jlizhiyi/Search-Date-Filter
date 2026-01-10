@@ -42,6 +42,7 @@ function injectUI() {
       </label>
     </div>
     <button id="ytsdf-save">Save</button>
+    <button id="ytsdf-restore">Restore Original Query</button>
   `;
   
   document.body.appendChild(toggleBtn);
@@ -103,7 +104,7 @@ function injectUI() {
           return;
         }
         
-        overlay.classList.remove('visible');
+        // Show confirmation
         const originalText = document.getElementById('ytsdf-save').textContent;
         document.getElementById('ytsdf-save').textContent = 'Saved! ✓';
         setTimeout(() => {
@@ -113,6 +114,19 @@ function injectUI() {
     } catch (error) {
       console.error('YTSDF: Error accessing chrome.storage:', error);
     }
+  });
+
+  // Restore button
+  document.getElementById('ytsdf-restore').addEventListener('click', () => {
+    const exactSearch = document.getElementById('ytsdf-exactSearch').checked;
+    restoreSearchBar(exactSearch);
+    
+    // Show confirmation
+    const originalText = document.getElementById('ytsdf-restore').textContent;
+    document.getElementById('ytsdf-restore').textContent = 'Cleared! ✓';
+    setTimeout(() => {
+      document.getElementById('ytsdf-restore').textContent = originalText;
+    }, 1500);
   });
 }
 
@@ -216,6 +230,42 @@ function interceptYouTubeSearch() {
   } catch (error) {
     console.error('YTSDF: Error in interceptYouTubeSearch:', error);
   }
+}
+
+function restoreSearchBar(exactSearch) {
+  let searchInput = null;
+  
+  if (location.hostname.includes('youtube.com')) {
+    searchInput = document.querySelector('input#search') 
+                  || document.querySelector('input[name="search_query"]')
+                  || document.querySelector('ytd-searchbox input');
+  } else if (location.hostname.includes('google.com')) {
+    searchInput = document.querySelector('input[name="q"]')
+                  || document.querySelector('textarea[name="q"]')
+                  || document.querySelector('input[aria-label*="Search"]');
+  }
+  
+  if (!searchInput) return;
+  
+  let currentValue = searchInput.value;
+  
+  // Remove any before:YYYY-MM-DD pattern
+  const beforePattern = /before:\d{4}-\d{2}-\d{2}\s+/gi;
+  currentValue = currentValue.replace(beforePattern, '');
+  
+  // Remove quotes if exact search was enabled
+  if (exactSearch && currentValue.startsWith('"') && currentValue.endsWith('"')) {
+    currentValue = currentValue.slice(1, -1);
+  }
+  
+  currentValue = currentValue.trim();
+  
+  // Set value using native setter
+  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+  nativeInputValueSetter.call(searchInput, currentValue);
+  
+  searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+  searchInput.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 // Initialize with delays to ensure APIs are ready
